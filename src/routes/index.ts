@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import authRoutes from './auth.routes'
 
 const router = Router();
 
@@ -13,6 +14,29 @@ const router = Router();
 // router.use('/repositories', repositoryRoutes);
 // router.use('/metrics', metricsRoutes);
 // router.use('/usage', usageRoutes);
+
+// Mount route modules
+router.use('/auth', authRoutes);
+
+// Root endpoint
+router.get('/', (_req, res) => {
+  res.json({
+    message: 'Developer Metrics API',
+    version: process.env.API_VERSION,
+    status: 'operational',
+    endpoints: {
+      health: '/health',
+      auth: {
+        register: 'POST /api/v1/auth/register',
+        me: 'GET /api/v1/auth/me',
+        listKeys: 'GET /api/v1/auth/keys',
+        getKey: 'GET /api/v1/auth/keys/:id',
+        revokeKey: 'POST /api/v1/auth/keys/:id/revoke',
+        deleteKey: 'DELETE /api/v1/auth/keys/:id',
+      },
+    },
+  });
+});
 
 // Temporary test route
 router.get('/', (_req, res) => {
