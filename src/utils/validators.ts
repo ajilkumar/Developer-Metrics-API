@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ValidationError } from './errors';
+import { ApiKeyTier } from '../types';
 
 /**
  * Zod schemas for request validation
@@ -23,7 +24,7 @@ export const githubUrlSchema = z
 export const registerApiKeySchema = z.object({
   email: emailSchema,
   name: z.string().min(1).max(255).optional(),
-  tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
+  tier: z.nativeEnum(ApiKeyTier).default(ApiKeyTier.FREE),
 });
 
 // Repository registration schema

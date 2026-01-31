@@ -12,7 +12,7 @@ export const generateApiKey = (tier: ApiKeyTier = ApiKeyTier.FREE): string => {
   const prefix = getApiKeyPrefix(tier);
 
   // Generate random bytes and convert to base62 (alphanumeric)
-  const randomBytes = crypto.randomBytes(18);
+  const randomBytes = crypto.randomBytes(16);
   const randomString = base62Encode(randomBytes);
 
   return `${prefix}${randomString}`;
