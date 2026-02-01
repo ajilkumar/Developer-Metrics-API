@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
 import { env } from './config/env';
 import routes from './routes';
+import { usageTracker } from './middleware/usageTracker';
 
 const app: Application = express();
 
@@ -29,6 +30,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging
 app.use(requestLogger);
+
+// Usage tracking middleware
+app.use(usageTracker);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
