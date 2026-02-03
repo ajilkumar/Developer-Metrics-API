@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
 import repositoryRoutes from './repository.routes';
+import usageRoutes from './usage.routes';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ const router = Router();
 // Mount route modules
 router.use('/auth', authRoutes);
 router.use('/repositories', repositoryRoutes);
+router.use('/usage', usageRoutes);
 
 // Root endpoint
 router.get('/', (_req, res) => {
@@ -47,6 +49,10 @@ router.get('/', (_req, res) => {
         commits: 'GET /api/v1/repositories/:id/metrics/commits',
         contributors: 'GET /api/v1/repositories/:id/metrics/contributors',
         activity: 'GET /api/v1/repositories/:id/metrics/activity',
+      },
+      usage: {
+        stats: 'GET /api/v1/usage/stats',
+        quota: 'GET /api/v1/usage/quota',
       },
     },
   });
