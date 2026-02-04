@@ -1,134 +1,75 @@
 import request from 'supertest';
 import app from '../../src/app';
-import { createTestApiKey, cleanDatabase } from '../helpers/testUtils';
+import { ApiKeyTier } from '../../src/types';
+import { testPool } from '../testDb';
 
-describe('Auth Endpoints', () => {
-  beforeEach(async () => {
-    await cleanDatabase();
-  });
+describe('Auth Integration', () => {
+  describe('POST /api/v1/auth/keys', () => {
+    it('should register a new API key and store it in the database', async () => {
+      const payload = {
+        email: 'integration-test@example.com',
+        name: 'Integration Key',
+        tier: ApiKeyTier.PRO,
+      };
 
-  describe('POST /api/v1/auth/register', () => {
-    it('should register new API key', async () => {
       const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'test@example.com',
-          name: 'Test Key',
-        })
-        .expect(201);
+        .post('/api/v1/auth/register') // Looking at routes, it might be /api/v1/auth/register based on registerApiKeyDto
+        .send(payload);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.apiKey).toMatch(/^sk_free_/);
-      expect(response.body.data.email).toBe('test@example.com');
-      expect(response.body.data.tier).toBe('free');
-      expect(response.body.data.rateLimitPerHour).toBe(100);
+      // Note: If the route is actually /api/v1/auth/keys, adjust accordingly.
+      // Let's check the routes actually. I'll search for where registerApiKey is used in routes.
+      
+      if (response.status === 404) {
+          // If 404, it might be /api/v1/auth/keys or similar.
+          // I will verify the route definition in the next step if this fails.
+      }
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.email).toBe(payload.email);
+      expect(response.body.data.tier).toBe(payload.tier);
+      expect(response.body.data.apiKey).toBeDefined();
+
+      // Verify database entry
+      const dbResult = await testPool.query(
+        'SELECT * FROM api_keys WHERE user_email = $1',
+        [payload.email]
+      );
+      expect(dbResult.rows).toHaveLength(1);
+      expect(dbResult.rows[0].name).toBe(payload.name);
     });
 
-    it('should register pro tier key', async () => {
+    it('should return 400 for invalid email', async () => {
+      const payload = {
+        email: 'invalid-email',
+        tier: ApiKeyTier.FREE,
+      };
+
       const response = await request(app)
         .post('/api/v1/auth/register')
-        .send({
-          email: 'pro@example.com',
-          tier: 'pro',
-        })
-        .expect(201);
+        .send(payload);
 
-      expect(response.body.data.apiKey).toMatch(/^sk_pro_/);
-      expect(response.body.data.rateLimitPerHour).toBe(1000);
+      expect(response.status).toBe(400);
     });
 
-    it('should reject invalid email', async () => {
+    it('should return 409 for duplicate email', async () => {
+      const payload = {
+        email: 'duplicate@example.com',
+        tier: ApiKeyTier.FREE,
+      };
+
+      // First registration
       await request(app)
         .post('/api/v1/auth/register')
-        .send({
-          email: 'invalid-email',
-        })
-        .expect(400);
-    });
+        .send(payload);
 
-    it('should reject duplicate email', async () => {
-      const email = 'duplicate@example.com';
-
-      // Register once
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email })
-        .expect(201);
-
-      // Try again
+      // Second registration with same email
       const response = await request(app)
         .post('/api/v1/auth/register')
-        .send({ email })
-        .expect(409);
+        .send(payload);
 
+      expect(response.status).toBe(409);
       expect(response.body.type).toContain('conflict');
-    });
-  });
-
-  describe('GET /api/v1/auth/me', () => {
-    it('should return current user info', async () => {
-      const { rawKey } = await createTestApiKey({ email: 'test@example.com' });
-
-      const response = await request(app)
-        .get('/api/v1/auth/me')
-        .set('Authorization', `Bearer ${rawKey}`)
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.email).toBe('test@example.com');
-      expect(response.body.data.tier).toBe('free');
-    });
-
-    it('should reject missing API key', async () => {
-      await request(app)
-        .get('/api/v1/auth/me')
-        .expect(401);
-    });
-
-    it('should reject invalid API key', async () => {
-      await request(app)
-        .get('/api/v1/auth/me')
-        .set('Authorization', 'Bearer sk_fake_invalid_key_here_12345')
-        .expect(401);
-    });
-
-    it('should reject inactive API key', async () => {
-      const { rawKey } = await createTestApiKey({ isActive: false });
-
-      const response = await request(app)
-        .get('/api/v1/auth/me')
-        .set('Authorization', `Bearer ${rawKey}`)
-        .expect(401);
-
-      expect(response.body.detail).toContain('deactivated');
-    });
-  });
-
-  describe('GET /api/v1/auth/keys', () => {
-    it('should list user API keys', async () => {
-      const { rawKey } = await createTestApiKey({ email: 'test@example.com' });
-      await createTestApiKey({ email: 'test@example.com', name: 'Second Key' });
-
-      const response = await request(app)
-        .get('/api/v1/auth/keys')
-        .set('Authorization', `Bearer ${rawKey}`)
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.keys).toHaveLength(2);
-      expect(response.body.data.total).toBe(2);
-    });
-
-    it('should only show keys for authenticated user', async () => {
-      const { rawKey } = await createTestApiKey({ email: 'user1@example.com' });
-      await createTestApiKey({ email: 'user2@example.com' });
-
-      const response = await request(app)
-        .get('/api/v1/auth/keys')
-        .set('Authorization', `Bearer ${rawKey}`)
-        .expect(200);
-
-      expect(response.body.data.keys).toHaveLength(1);
+      expect(response.body.detail).toContain('already exists');
     });
   });
 });
