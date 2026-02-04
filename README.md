@@ -31,7 +31,7 @@
 
 ---
 
-## ✨ Features
+## <a id="features"></a>✨ Features
 
 ### Core Functionality
 - 🔐 **API Key Authentication** - Secure SHA-256 hashed API keys
@@ -52,7 +52,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## <a id="tech-stack"></a>🛠️ Tech Stack
 
 | Technology | Purpose | Why? |
 |------------|---------|------|
@@ -66,7 +66,7 @@
 | **Zod** | Validation | Type-safe schema validation |
 
 
-## 🚀 Getting Started
+## <a id="getting-started"></a>🚀 Getting Started
 ### Prerequisites
 
 - Node.js 20+
@@ -129,7 +129,7 @@ curl http://localhost:3000/api/v1/auth/me \
 
 ---
 
-## 📁 Project Structure
+## <a id="project-structure"></a>📁 Project Structure
 ```
 developer-metrics-api/
 ├── src/
@@ -198,7 +198,22 @@ developer-metrics-api/
 
 ---
 
-## ⚡ Performance
+## <a id="key-design-decisions"></a>🎯 Key Design Decisions
+
+### 1. API Key Security
+API keys are never stored in plain text. We store only the SHA-256 hash of the key, ensuring that even if the database is compromised, the actual keys remain secure.
+
+### 2. Rate Limiting Strategy
+We implement a **Sliding Window Log** algorithm using Redis Sorted Sets. This provides precise rate limiting without the "burst" issues found in Fixed Window counters.
+
+### 3. Multi-layer Caching
+- **Browser/CDN**: Controlled via Cache-Control headers.
+- **Application Logic**: Redis stores frequently accessed repository metadata.
+- **Database**: Optimized indexes for high-speed retrieval.
+
+---
+
+## <a id="performance"></a>⚡ Performance
 
 ### Benchmarks
 
@@ -227,7 +242,7 @@ developer-metrics-api/
 
 ---
 
-## 🧪 Testing
+## <a id="testing"></a>🧪 Testing
 
 ### Run Tests
 ```bash
@@ -259,7 +274,7 @@ time curl http://localhost:3000/api/v1/repositories/ID/metrics/summary \
 
 ---
 
-## ⚙️ CI/CD Pipeline
+## <a id="cicd-pipeline"></a>⚙️ CI/CD Pipeline
 
 The project uses GitHub Actions for continuous integration and automated quality checks.
 
@@ -274,7 +289,7 @@ Current Build Status: [![CI/CD Pipeline](https://github.com/ajilkumar/Rate-Limit
 
 ---
 
-## 🚢 Deployment
+## <a id="deployment"></a>🚢 Deployment
 
 ### Production Checklist
 
@@ -310,7 +325,7 @@ docker run -p 3000:3000 --env-file .env devmetrics-api
 
 ---
 
-## 🤝 Contributing
+## <a id="contributing"></a>🤝 Contributing
 
 Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
@@ -322,7 +337,7 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ---
 
-## 📄 License
+## <a id="license"></a>📄 License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
 
