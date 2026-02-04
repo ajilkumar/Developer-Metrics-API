@@ -15,11 +15,12 @@
     "test:unit": "jest --config jest.unit.config.ts",
     "test:integration": "jest --config jest.integration.config.ts",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "migrate": "ts-node migrations/migrate.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky install"
   },
   "author": "ajil",
   "license": "ISC",
